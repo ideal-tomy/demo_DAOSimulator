@@ -4,6 +4,7 @@ import { Badge } from '../common/Badge';
 import { useGovernance } from '../../hooks/useGovernance';
 import { useDemo } from '../../contexts/DemoContext';
 import { Pie, PieChart, Cell, ResponsiveContainer } from 'recharts';
+import passedStamp from '../../assets/stamp-passed.svg';
 
 const COLORS = ['#28a745', '#dc3545'];
 
@@ -27,7 +28,14 @@ export const Governance: React.FC = () => {
 
   return (
     <Card>
-      <div className="flex items-start gap-8">
+      <div className="relative flex items-start gap-8">
+        {proposal.status === 'passed' && (
+          <img
+            src={passedStamp}
+            alt="可決"
+            className="absolute left-6 top-6 w-28 opacity-90 animate-[stamp_300ms_ease-out_forwards]"
+          />
+        )}
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h2 className="text-[22px] font-semibold">意思決定</h2>
@@ -97,6 +105,13 @@ export const Governance: React.FC = () => {
           </div>
         </div>
       </div>
+      <style>{`
+        @keyframes stamp {
+          0% { transform: scale(0.8) rotate(-10deg); opacity: 0; }
+          70% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+          100% { transform: scale(1.0) rotate(0deg); opacity: 1; }
+        }
+      `}</style>
     </Card>
   );
 };

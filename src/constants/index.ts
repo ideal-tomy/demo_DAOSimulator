@@ -18,6 +18,8 @@ export type ProposalStatus = 'voting' | 'passed' | 'rejected';
 export type Proposal = {
   id: string;
   title: string;
+  type: 'INCOME' | 'EXPENSE';
+  amount?: number; // 支出/収入のデモ用金額
   status: ProposalStatus;
   threshold: number; // e.g. 51
   votes: Vote[];
@@ -37,6 +39,20 @@ export type DemoState = {
   participants: Participant[];
   proposals: Proposal[];
   activityLog: ActivityLogItem[];
+  ui: {
+    // アニメーション用のトリガー（収益/支出）
+    flowEvent?: {
+      id: number;
+      type: 'income' | 'expense';
+      amount: number;
+    };
+    // 可決通知
+    notification?: {
+      id: number;
+      title: string;
+      message: string;
+    };
+  };
 };
 
 export const INITIAL_STATE: DemoState = {
@@ -65,6 +81,8 @@ export const INITIAL_STATE: DemoState = {
     {
       id: 'proposal-001',
       title: '北米でのゲーム化ライセンス許諾',
+      type: 'EXPENSE',
+      amount: 20_000_000,
       status: 'voting',
       threshold: 51,
       votes: [
@@ -93,6 +111,7 @@ export const INITIAL_STATE: DemoState = {
       message: 'A社（スタジオ） (7%) が提案#001を作成しました。',
     },
   ],
+  ui: {},
 };
 
 export const YEN = new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' });

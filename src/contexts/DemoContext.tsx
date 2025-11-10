@@ -7,6 +7,8 @@ type DemoContextValue = {
   state: DemoState;
   setPersona: (persona: DemoState['currentPersona']) => void;
   depositAndDistribute: (amount: number) => Promise<void>;
+  handleIncome: (amount: number) => Promise<void>;
+  handleExpense: (amount: number) => Promise<void>;
   castVote: (proposalId: string, choice: Exclude<VoteChoice, null>) => Promise<void>;
   resetDemo: () => void;
   getCurrentParticipant: () => Participant | null;
@@ -37,6 +39,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setState((prev) => ({
       ...prev,
       treasury: { balance: prev.treasury.balance + amount },
+      ui: { ...prev.ui, flowEvent: { id: Date.now(), type: 'income', amount } },
     }));
     await new Promise((r) => setTimeout(r, 100));
 
@@ -49,6 +52,33 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     appendLog(`【分配】共有金庫から各社へ ${YEN.format(amount)} を自動分配しました。`);
+  };
+
+  const handleIncome = async (amount: number) => {
+    await depositAndDistribute(amount);
+  };
+
+  const handleExpense = async (amount: number) => {
+    // 金庫から支出 → 不足分は各社から按分で減額
+    setState((prev) => {
+      const remaining = prev.treasury.balance - amount;
+      const deficit = remaining >= 0 ? 0 : Math.abs(remaining);
+      const nextTreasury = Math.max(remaining, 0);
+      const nextParticipants =
+        deficit > 0
+          ? prev.participants.map((p) => {
+              const deduction = Math.floor((deficit * p.stakePercentage) / 100);
+              return { ...p, walletBalance: Math.max(p.walletBalance - deduction, 0) };
+            })
+          : prev.participants;
+      return {
+        ...prev,
+        treasury: { balance: nextTreasury },
+        participants: nextParticipants,
+        ui: { ...prev.ui, flowEvent: { id: Date.now(), type: 'expense', amount } },
+      };
+    });
+    appendLog(`【支出】 ${YEN.format(amount)} を払い出しました。`);
   };
 
   const castVote = async (proposalId: string, choice: Exclude<VoteChoice, null>) => {
@@ -74,13 +104,19 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 150ms以内にグラフ更新扱い
     await new Promise((r) => setTimeout(r, 150));
 
+    let justPassed: { flag: boolean; type?: 'INCOME' | 'EXPENSE'; amount?: number; title?: string } = {
+      flag: false,
+    };
     setState((prev) => {
       const proposals = prev.proposals.map((p) => {
         if (p.id !== proposalId) return p;
         const support = p.votes.reduce((acc, v) => (v.choice === 'support' ? acc + v.weight : acc), 0);
-        const status: Proposal['status'] =
+        const nextStatus: Proposal['status'] =
           support >= p.threshold ? 'passed' : p.status;
-        return { ...p, status };
+        if (p.status !== 'passed' && nextStatus === 'passed') {
+          justPassed = { flag: true, type: p.type, amount: p.amount, title: p.title };
+        }
+        return { ...p, status: nextStatus };
       });
       return { ...prev, proposals };
     });
@@ -88,6 +124,25 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     appendLog(
       `${participantName} が「${proposalTitle}」に${choice === 'support' ? '賛成' : '反対'}しました。`
     );
+
+    if (justPassed.flag) {
+      setState((prev) => ({
+        ...prev,
+        ui: {
+          ...prev.ui,
+          notification: {
+            id: Date.now(),
+            title: '契約#001は可決・自動執行されました。',
+            message: `${justPassed.title ?? '提案'} が成立しました。自動で処理を実行します。`,
+          },
+        },
+      }));
+      if (justPassed.type === 'EXPENSE' && justPassed.amount) {
+        await handleExpense(justPassed.amount);
+      } else if (justPassed.type === 'INCOME' && justPassed.amount) {
+        await handleIncome(justPassed.amount);
+      }
+    }
   };
 
   const resetDemo = () => {
@@ -116,6 +171,8 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       state,
       setPersona,
       depositAndDistribute,
+      handleIncome,
+      handleExpense,
       castVote,
       resetDemo,
       getCurrentParticipant,

@@ -6,6 +6,7 @@ import { ActivityLog } from '../components/modules/ActivityLog';
 import { DemoPanel } from '../components/modules/DemoPanel';
 import { Button } from '../components/common/Button';
 import { useNavigate } from 'react-router-dom';
+import { PopupNotification } from '../components/common/PopupNotification';
 
 export const DashboardPage: React.FC = () => {
   const { getCurrentParticipant, setPersona, state } = useDemo();
@@ -57,6 +58,12 @@ export const DashboardPage: React.FC = () => {
         <ActivityLog />
         <DemoPanel />
       </div>
+      {state.ui.notification && (
+        <PopupNotification
+          title={state.ui.notification.title}
+          message={state.ui.notification.message}
+        />
+      )}
     </div>
   );
 };
