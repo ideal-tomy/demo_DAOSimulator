@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDemo } from '../contexts/DemoContext';
+import { useDemo } from '../contexts/useDemo';
 import { Treasury } from '../components/modules/Treasury';
 import { Governance } from '../components/modules/Governance';
 import { ActivityLog } from '../components/modules/ActivityLog';
@@ -24,8 +24,8 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="w-full px-0 py-12">
-      <header className="flex items-center justify-between mb-16 px-8">
-        <div>
+      <header className="px-8 mb-16 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="w-full">
           <div className="text-sm text-[#6c757d]">ログイン中</div>
           <div className="text-[22px] font-semibold">
             {current ? `${current.name} (議決権 ${current.stakePercentage}%)` : '未選択'}
@@ -46,9 +46,13 @@ export const DashboardPage: React.FC = () => {
             ))}
           </div>
         </div>
-        <div className="flex gap-3">
-          <Button variant="ghost" onClick={() => navigate('/legacy')} className="min-w-0">比較する（従来）</Button>
-          <Button variant="ghost" onClick={handleLogout} className="min-w-0">ログアウト</Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          <Button variant="ghost" onClick={() => navigate('/legacy')} className="min-w-0 w-full sm:w-auto">
+            比較する（従来）
+          </Button>
+          <Button variant="ghost" onClick={handleLogout} className="min-w-0 w-full sm:w-auto">
+            ログアウト
+          </Button>
         </div>
       </header>
 

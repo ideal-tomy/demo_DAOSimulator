@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '../common/Card';
-import { useDemo } from '../../contexts/DemoContext';
+import { useDemo } from '../../contexts/useDemo';
 
 export const ActivityLog: React.FC = () => {
   const { state } = useDemo();

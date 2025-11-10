@@ -4,7 +4,7 @@ import { useTreasury } from '../../hooks/useTreasury';
 import { YEN } from '../../constants';
 import { WaterfallAnimation } from './WaterfallAnimation';
 import { AnimatedNumber } from '../common/AnimatedNumber';
-import { useDemo } from '../../contexts/DemoContext';
+import { useDemo } from '../../contexts/useDemo';
 
 export const Treasury: React.FC = () => {
   const { treasury, currentParticipant, participants } = useTreasury();

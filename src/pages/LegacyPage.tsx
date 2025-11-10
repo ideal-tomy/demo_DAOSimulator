@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
-import { useDemo } from '../contexts/DemoContext';
+import { useDemo } from '../contexts/useDemo';
 
 export const LegacyPage: React.FC = () => {
   const navigate = useNavigate();

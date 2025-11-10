@@ -1,4 +1,4 @@
-import { useDemo } from '../contexts/DemoContext';
+import { useDemo } from '../contexts/useDemo';
 
 export const useTreasury = () => {
   const { state, depositAndDistribute, getCurrentParticipant } = useDemo();

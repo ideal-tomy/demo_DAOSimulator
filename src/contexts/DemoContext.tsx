@@ -1,20 +1,8 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import dayjs from 'dayjs';
-import type { ActivityLogItem, DemoState, Participant, Proposal, VoteChoice } from '../constants';
+import type { ActivityLogItem, DemoState, Proposal, VoteChoice } from '../constants';
 import { INITIAL_STATE, YEN } from '../constants';
-
-type DemoContextValue = {
-  state: DemoState;
-  setPersona: (persona: DemoState['currentPersona']) => void;
-  depositAndDistribute: (amount: number) => Promise<void>;
-  handleIncome: (amount: number) => Promise<void>;
-  handleExpense: (amount: number) => Promise<void>;
-  castVote: (proposalId: string, choice: Exclude<VoteChoice, null>) => Promise<void>;
-  resetDemo: () => void;
-  getCurrentParticipant: () => Participant | null;
-};
-
-const DemoContext = createContext<DemoContextValue | undefined>(undefined);
+import { DemoContext, type DemoContextValue } from './DemoContextBase';
 
 export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<DemoState>(INITIAL_STATE);
@@ -60,7 +48,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleExpense = async (amount: number) => {
     // 金庫から支出 → 不足分は各社から按分で減額
-    let deductedParticipants: Array<{ id: string; name: string; deduction: number }> = [];
+    const deductedParticipants: Array<{ id: string; name: string; deduction: number }> = [];
     let treasuryPaid = 0;
     setState((prev) => {
       const remaining = prev.treasury.balance - amount;
@@ -181,26 +169,16 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return state.participants.find((p) => p.id === state.currentPersona) ?? null;
   };
 
-  const value = useMemo<DemoContextValue>(
-    () => ({
-      state,
-      setPersona,
-      depositAndDistribute,
-      handleIncome,
-      handleExpense,
-      castVote,
-      resetDemo,
-      getCurrentParticipant,
-    }),
-    [state]
-  );
+  const value: DemoContextValue = {
+    state,
+    setPersona,
+    depositAndDistribute,
+    handleIncome,
+    handleExpense,
+    castVote,
+    resetDemo,
+    getCurrentParticipant,
+  };
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 };
-
-export const useDemo = (): DemoContextValue => {
-  const ctx = useContext(DemoContext);
-  if (!ctx) throw new Error('useDemo must be used within DemoProvider');
-  return ctx;
-};
-

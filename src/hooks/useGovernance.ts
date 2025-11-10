@@ -1,4 +1,4 @@
-import { useDemo } from '../contexts/DemoContext';
+import { useDemo } from '../contexts/useDemo';
 import type { Proposal } from '../constants';
 
 export const useGovernance = () => {

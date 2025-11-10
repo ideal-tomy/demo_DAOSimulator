@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { useGovernance } from '../../hooks/useGovernance';
-import { useDemo } from '../../contexts/DemoContext';
+import { useDemo } from '../../contexts/useDemo';
 import { Pie, PieChart, Cell, ResponsiveContainer } from 'recharts';
 import { YEN } from '../../constants';
 
@@ -29,7 +29,7 @@ export const Governance: React.FC = () => {
 
   return (
     <Card>
-      <div className="relative flex items-start gap-8">
+      <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start">
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h2 className="text-[22px] font-semibold">意思決定</h2>
@@ -70,7 +70,7 @@ export const Governance: React.FC = () => {
             </button>
           </div>
           {proposal.status === 'passed' && (
-            <div className="mt-6 flex items-center justify-center">
+            <div className="mt-6 flex items-center justify-center lg:justify-start">
               <div className="relative bg-[#dc3545] text-white px-8 py-4 rounded-lg text-xl font-bold shadow-lg filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]">
                 <svg className="absolute inset-0 w-full h-full opacity-30">
                   <filter id="noise">
@@ -84,24 +84,26 @@ export const Governance: React.FC = () => {
             </div>
           )}
         </div>
-        <div className="w-[280px] h-[200px] min-w-[280px] min-h-[200px]">
-          <ResponsiveContainer width="100%" height="100%" minWidth={280} minHeight={200}>
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-              >
-                {data.map((_, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-2 text-sm space-y-1">
+        <div className="w-full mt-6 lg:mt-0 lg:w-[280px] flex flex-col items-center">
+          <div className="w-[200px] h-[200px] sm:w-[220px] sm:h-[220px] lg:w-[280px] lg:h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="80%"
+                >
+                  {data.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-2 text-sm space-y-1 text-center lg:text-left">
             <div>
               現在の賛成率: <span className="font-semibold">{support.toFixed(1)}%</span>
             </div>

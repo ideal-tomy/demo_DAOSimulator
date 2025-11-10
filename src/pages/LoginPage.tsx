@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { useDemo } from '../contexts/DemoContext';
+import { useDemo } from '../contexts/useDemo';
 import { useNavigate } from 'react-router-dom';
 
 const IntroGuide: React.FC = () => {
