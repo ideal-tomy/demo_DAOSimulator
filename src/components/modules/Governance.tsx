@@ -4,7 +4,7 @@ import { Badge } from '../common/Badge';
 import { useGovernance } from '../../hooks/useGovernance';
 import { useDemo } from '../../contexts/DemoContext';
 import { Pie, PieChart, Cell, ResponsiveContainer } from 'recharts';
-import passedStamp from '../../assets/stamp-passed.svg';
+import { YEN } from '../../constants';
 
 const COLORS = ['#28a745', '#dc3545'];
 
@@ -14,7 +14,8 @@ export const Governance: React.FC = () => {
   const current = state.currentPersona;
   const isVoter = current && current !== 'LEGACY';
 
-  const proposal = proposals[0];
+  // 投票中の提案を優先表示、なければ最初の提案
+  const proposal = proposals.find((p) => p.status === 'voting') || proposals[0];
   const support = getSupportPercent(proposal);
   const data = [
     { name: '賛成', value: Math.round(support) },
@@ -29,24 +30,21 @@ export const Governance: React.FC = () => {
   return (
     <Card>
       <div className="relative flex items-start gap-8">
-        {proposal.status === 'passed' && (
-          <img
-            src={passedStamp}
-            alt="可決"
-            className="absolute left-6 top-6 w-28 opacity-90 animate-[stamp_300ms_ease-out_forwards]"
-          />
-        )}
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h2 className="text-[22px] font-semibold">意思決定</h2>
             {proposal.status === 'voting' && <Badge color="blue">投票中</Badge>}
-            {proposal.status === 'passed' && <Badge color="green">可決</Badge>}
             {proposal.status === 'rejected' && <Badge color="red">否決</Badge>}
           </div>
           <p className="text-sm text-[#6c757d] mt-2 mb-3">
             提案に対して、各社が議決権（出資比率）に応じた重み付けで投票できます。賛成が可決ラインを超えた瞬間、自動的に可決されます。
           </p>
           <p className="text-base text-[#343a40] font-medium mt-2">{proposal.title}</p>
+          {proposal.type === 'EXPENSE' && proposal.amount && (
+            <div className="mt-3 text-base text-[#dc3545] font-semibold">
+              支出額: {YEN.format(proposal.amount)}
+            </div>
+          )}
           <div className="mt-4 text-base">
             可決ライン: <span className="font-semibold">{proposal.threshold}%</span>
           </div>
@@ -71,6 +69,20 @@ export const Governance: React.FC = () => {
               反対する
             </button>
           </div>
+          {proposal.status === 'passed' && (
+            <div className="mt-6 flex items-center justify-center">
+              <div className="relative bg-[#dc3545] text-white px-8 py-4 rounded-lg text-xl font-bold shadow-lg filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]">
+                <svg className="absolute inset-0 w-full h-full opacity-30">
+                  <filter id="noise">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
+                    <feColorMatrix type="saturate" values="0" />
+                  </filter>
+                  <rect width="100%" height="100%" filter="url(#noise)" />
+                </svg>
+                <span className="relative z-10">可決</span>
+              </div>
+            </div>
+          )}
         </div>
         <div className="w-[280px] h-[200px] min-w-[280px] min-h-[200px]">
           <ResponsiveContainer width="100%" height="100%" minWidth={280} minHeight={200}>
@@ -105,13 +117,6 @@ export const Governance: React.FC = () => {
           </div>
         </div>
       </div>
-      <style>{`
-        @keyframes stamp {
-          0% { transform: scale(0.8) rotate(-10deg); opacity: 0; }
-          70% { transform: scale(1.1) rotate(2deg); opacity: 1; }
-          100% { transform: scale(1.0) rotate(0deg); opacity: 1; }
-        }
-      `}</style>
     </Card>
   );
 };

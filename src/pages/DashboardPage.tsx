@@ -62,6 +62,7 @@ export const DashboardPage: React.FC = () => {
         <PopupNotification
           title={state.ui.notification.title}
           message={state.ui.notification.message}
+          durationMs={12000}
         />
       )}
     </div>

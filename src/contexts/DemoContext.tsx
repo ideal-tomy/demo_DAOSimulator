@@ -60,14 +60,20 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleExpense = async (amount: number) => {
     // 金庫から支出 → 不足分は各社から按分で減額
+    let deductedParticipants: Array<{ id: string; name: string; deduction: number }> = [];
+    let treasuryPaid = 0;
     setState((prev) => {
       const remaining = prev.treasury.balance - amount;
       const deficit = remaining >= 0 ? 0 : Math.abs(remaining);
       const nextTreasury = Math.max(remaining, 0);
+      treasuryPaid = Math.min(amount, prev.treasury.balance);
       const nextParticipants =
         deficit > 0
           ? prev.participants.map((p) => {
               const deduction = Math.floor((deficit * p.stakePercentage) / 100);
+              if (deduction > 0) {
+                deductedParticipants.push({ id: p.id, name: p.name, deduction });
+              }
               return { ...p, walletBalance: Math.max(p.walletBalance - deduction, 0) };
             })
           : prev.participants;
@@ -78,7 +84,15 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ui: { ...prev.ui, flowEvent: { id: Date.now(), type: 'expense', amount } },
       };
     });
-    appendLog(`【支出】 ${YEN.format(amount)} を払い出しました。`);
+    
+    if (treasuryPaid > 0) {
+      appendLog(`【支出】共有金庫から ${YEN.format(treasuryPaid)} を払い出しました。`);
+    }
+    if (deductedParticipants.length > 0) {
+      deductedParticipants.forEach((p) => {
+        appendLog(`${p.name} のウォレットから ${YEN.format(p.deduction)} が按分されました。`);
+      });
+    }
   };
 
   const castVote = async (proposalId: string, choice: Exclude<VoteChoice, null>) => {
@@ -104,7 +118,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 150ms以内にグラフ更新扱い
     await new Promise((r) => setTimeout(r, 150));
 
-    let justPassed: { flag: boolean; type?: 'INCOME' | 'EXPENSE'; amount?: number; title?: string } = {
+    let justPassed: { flag: boolean; type?: 'INCOME' | 'EXPENSE'; amount?: number; title?: string; id?: string } = {
       flag: false,
     };
     setState((prev) => {
@@ -114,7 +128,7 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const nextStatus: Proposal['status'] =
           support >= p.threshold ? 'passed' : p.status;
         if (p.status !== 'passed' && nextStatus === 'passed') {
-          justPassed = { flag: true, type: p.type, amount: p.amount, title: p.title };
+          justPassed = { flag: true, type: p.type, amount: p.amount, title: p.title, id: p.id };
         }
         return { ...p, status: nextStatus };
       });
@@ -126,20 +140,21 @@ export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     if (justPassed.flag) {
+      const proposalIdNum = justPassed.id?.replace('proposal-', '') || '001';
       setState((prev) => ({
         ...prev,
         ui: {
           ...prev.ui,
           notification: {
             id: Date.now(),
-            title: '契約#001は可決・自動執行されました。',
-            message: `${justPassed.title ?? '提案'} が成立しました。自動で処理を実行します。`,
+            title: `契約#${proposalIdNum}は可決・自動執行されました。`,
+            message: `${justPassed.title ?? '提案'} が成立しました。自動で処理を実行します。確定された内容が各社ダウンローと可能な共有フォルダにPDF保存されますので、確認してください。`,
           },
         },
       }));
-      if (justPassed.type === 'EXPENSE' && justPassed.amount) {
+      if (justPassed.type === 'EXPENSE' && justPassed.amount !== undefined) {
         await handleExpense(justPassed.amount);
-      } else if (justPassed.type === 'INCOME' && justPassed.amount) {
+      } else if (justPassed.type === 'INCOME' && justPassed.amount !== undefined) {
         await handleIncome(justPassed.amount);
       }
     }

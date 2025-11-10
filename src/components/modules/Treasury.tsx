@@ -17,6 +17,7 @@ export const Treasury: React.FC = () => {
         <WaterfallAnimation
           triggerId={state.ui.flowEvent?.id}
           type={state.ui.flowEvent?.type}
+          participantCount={participants.length}
         />
         <div className="flex flex-col gap-6">
           <div>

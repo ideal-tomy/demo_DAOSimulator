@@ -12,7 +12,7 @@ export const PopupNotification: React.FC<PopupNotificationProps> = ({
   title,
   message,
   onClose,
-  durationMs = 5000,
+  durationMs = 12000,
 }) => {
   const [visible, setVisible] = useState(false);
 
