@@ -8,7 +8,7 @@ import { BrowserRouter } from 'react-router-dom';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <DemoProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/demo_DAOSimulator">
         <App />
       </BrowserRouter>
     </DemoProvider>
